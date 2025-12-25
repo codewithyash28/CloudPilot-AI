@@ -10,13 +10,15 @@ const MarketIntel: React.FC = () => {
   const handleSearch = async () => {
     if (!query) return;
     setLoading(true);
+    setResults(null);
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      // Using gemini-2.5-flash for Maps + Search capability
       const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-2.5-flash',
         contents: query,
         config: {
-          tools: [{ googleSearch: {} }]
+          tools: [{ googleSearch: {} }, { googleMaps: {} }]
         }
       });
       setResults({
@@ -25,7 +27,7 @@ const MarketIntel: React.FC = () => {
       });
     } catch (e) {
       console.error(e);
-      setResults({ text: 'Intel gathering failed. Grounding unavailable.', sources: [] });
+      setResults({ text: 'Intel gathering failed. Grounding modules are currently offline.', sources: [] });
     } finally {
       setLoading(false);
     }
@@ -33,13 +35,13 @@ const MarketIntel: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="bg-white dark:bg-zinc-800 p-8 rounded-2xl shadow-sm border dark:border-zinc-700">
-        <h2 className="text-2xl font-black mb-2 text-amber-500">🌐 Market Intel</h2>
-        <p className="text-sm text-gray-400 font-bold uppercase tracking-widest mb-6">Real-time Grounding in Google Search & Maps</p>
+      <div className="bg-white dark:bg-zinc-800 p-10 rounded-3xl shadow-sm border dark:border-zinc-700">
+        <h2 className="text-3xl font-black mb-2 text-amber-500 tracking-tight">🌐 Market Intel</h2>
+        <p className="text-sm text-gray-400 font-black uppercase tracking-[0.2em] mb-8">Real-time Grounding in Google Search & Maps</p>
         <div className="flex gap-4">
           <input 
-            className="flex-1 p-4 bg-slate-50 dark:bg-zinc-900 dark:text-white rounded-xl border dark:border-zinc-700 outline-none focus:ring-2 focus:ring-amber-500 font-medium"
-            placeholder="Ask about competitors, trending regions, or specific business locations..."
+            className="flex-1 p-5 bg-slate-50 dark:bg-zinc-900 dark:text-white rounded-2xl border dark:border-zinc-700 outline-none focus:ring-2 focus:ring-amber-500 font-semibold transition-all"
+            placeholder="Search market trends, competitor footprints, or regional business metrics..."
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSearch()}
@@ -47,27 +49,33 @@ const MarketIntel: React.FC = () => {
           <button 
             onClick={handleSearch}
             disabled={loading || !query}
-            className="bg-amber-500 text-white px-8 py-4 rounded-xl font-black hover:bg-amber-600 shadow-xl shadow-amber-100 dark:shadow-none transition-all active:scale-95"
+            className="bg-amber-500 text-white px-10 py-5 rounded-2xl font-black hover:bg-amber-600 shadow-2xl shadow-amber-100 dark:shadow-none transition-all active:scale-95 disabled:opacity-50"
           >
-            {loading ? 'Scanning...' : 'Fetch Intel'}
+            {loading ? 'Scanning...' : 'Scan Market'}
           </button>
         </div>
       </div>
 
       {results && (
-        <div className="bg-white dark:bg-zinc-800 p-8 rounded-2xl shadow-sm border dark:border-zinc-700 animate-in fade-in">
-          <div className="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 font-medium leading-relaxed mb-8">
+        <div className="bg-white dark:bg-zinc-800 p-10 rounded-3xl shadow-sm border dark:border-zinc-700 animate-in fade-in slide-in-from-bottom-6 duration-700">
+          <div className="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 font-medium leading-loose mb-10 text-lg">
             {results.text}
           </div>
           
           {results.sources.length > 0 && (
-            <div className="pt-6 border-t dark:border-zinc-700">
-              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em] mb-4">Verification Sources</h4>
-              <div className="flex flex-wrap gap-2">
-                {results.sources.map((chunk: any, i: number) => chunk.web && (
-                  <a key={i} href={chunk.web.uri} target="_blank" rel="noopener" className="text-xs bg-amber-50 dark:bg-amber-900/10 text-amber-600 px-3 py-1.5 rounded-lg border border-amber-100 dark:border-amber-900/30 hover:bg-amber-100 transition-colors">
-                    {chunk.web.title || 'Source Reference'}
-                  </a>
+            <div className="pt-8 border-t dark:border-zinc-700">
+              <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-6">Verified Grounding Sources</h4>
+              <div className="flex flex-wrap gap-3">
+                {results.sources.map((chunk: any, i: number) => (
+                  chunk.web ? (
+                    <a key={i} href={chunk.web.uri} target="_blank" rel="noopener noreferrer" className="text-xs bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 px-4 py-2 rounded-xl border border-amber-100 dark:border-amber-900/30 hover:bg-amber-100 transition-all font-bold shadow-sm">
+                      🔗 {chunk.web.title || 'Data Source'}
+                    </a>
+                  ) : chunk.maps ? (
+                    <a key={i} href={chunk.maps.uri} target="_blank" rel="noopener noreferrer" className="text-xs bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-xl border border-emerald-100 dark:border-emerald-900/30 hover:bg-emerald-100 transition-all font-bold shadow-sm">
+                      📍 {chunk.maps.title || 'Maps Reference'}
+                    </a>
+                  ) : null
                 ))}
               </div>
             </div>
