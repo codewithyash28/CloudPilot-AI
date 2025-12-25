@@ -1,0 +1,8 @@
+{
+  "name": "CloudPilot AI",
+  "description": "An Odoo-inspired full-stack modular business management platform featuring AI-powered architecture and business advisory.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
