@@ -239,11 +239,7 @@ See CONTRIBUTING.md for more details (add one if needed).
 
 ---
 
-## References
-- Vertex AI: https://cloud.google.com/vertex-ai
-- Datadog: https://www.datadoghq.com
-- Confluent Cloud (Kafka): https://www.confluent.io
-- ElevenLabs: https://elevenlabs.io
+
 
 ---
 
