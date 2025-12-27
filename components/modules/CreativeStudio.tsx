@@ -2,24 +2,45 @@
 import React, { useState } from 'react';
 import { GoogleGenAI } from "@google/genai";
 
+/* 
+ * Removed conflicting global declaration of window.aistudio. 
+ * The 'AIStudio' type is already provided by the environment. 
+ * We use type assertion to access it safely.
+ */
+
 const CreativeStudio: React.FC = () => {
   const [prompt, setPrompt] = useState('');
   const [mediaUrl, setMediaUrl] = useState('');
   const [type, setType] = useState<'image' | 'video'>('image');
   const [loading, setLoading] = useState(false);
 
+  // Helper to ensure user has selected a paid API key for Veo models as per guidelines
+  const ensureApiKey = async () => {
+    const aistudio = (window as any).aistudio;
+    if (aistudio) {
+      const hasKey = await aistudio.hasSelectedApiKey();
+      if (!hasKey) {
+        await aistudio.openSelectKey();
+      }
+    }
+  };
+
   const generateImage = async () => {
     setLoading(true);
     setMediaUrl('');
     try {
+      // Re-instantiate GoogleGenAI to ensure the latest API key is used
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: { parts: [{ text: prompt }] },
         config: { imageConfig: { aspectRatio: "16:9" } }
       });
+      // Iterate through parts to find the image part (do not assume index 0)
       const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
-      if (part) setMediaUrl(`data:image/png;base64,${part.inlineData.data}`);
+      if (part && part.inlineData) {
+        setMediaUrl(`data:image/png;base64,${part.inlineData.data}`);
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -28,22 +49,44 @@ const CreativeStudio: React.FC = () => {
   };
 
   const generateVideo = async () => {
+    // Mandated step: Ensure API key selection for Veo models
+    await ensureApiKey();
     setLoading(true);
     setMediaUrl('');
     try {
+      // Create a fresh instance right before the call to ensure latest API key
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       let op = await ai.models.generateVideos({
         model: 'veo-3.1-fast-generate-preview',
         prompt,
-        config: { resolution: '720p', aspectRatio: '16:9' }
+        config: { 
+          numberOfVideos: 1, // Required parameter
+          resolution: '720p', 
+          aspectRatio: '16:9' 
+        }
       });
+      
+      // Polling for video generation completion
       while (!op.done) {
-        await new Promise(r => setTimeout(r, 5000));
+        await new Promise(r => setTimeout(r, 10000));
         op = await ai.operations.getVideosOperation({operation: op});
       }
-      setMediaUrl(`${op.response?.generatedVideos?.[0]?.video?.uri}&key=${process.env.API_KEY}`);
-    } catch (e) {
+      
+      // Construct final media URL with the API key appended for fetching the MP4 bytes
+      const videoUri = op.response?.generatedVideos?.[0]?.video?.uri;
+      if (videoUri) {
+        setMediaUrl(`${videoUri}&key=${process.env.API_KEY}`);
+      }
+    } catch (e: any) {
       console.error(e);
+      // Handle project/key not found errors by resetting selection
+      if (e.message?.includes("Requested entity was not found")) {
+        alert("Please select a valid paid API key from a project with billing enabled.");
+        const aistudio = (window as any).aistudio;
+        if (aistudio) {
+          await aistudio.openSelectKey();
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -86,6 +129,12 @@ const CreativeStudio: React.FC = () => {
             <video src={mediaUrl} className="w-full h-auto" controls autoPlay loop />
           )}
         </div>
+      )}
+
+      {type === 'video' && (
+        <p className="text-xs text-center text-gray-400">
+          Veo requires a billing-enabled API key. <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noreferrer" className="underline">Billing Documentation</a>
+        </p>
       )}
     </div>
   );

@@ -48,10 +48,12 @@ const HR: React.FC = () => {
     saveEmployees(updated);
   };
 
+  // Fixed: Argument of type '(Employee | { ... })[]' is not assignable to Employee[]
   const toggleEmploymentStatus = (id: string) => {
     const updated = employees.map(emp => {
       if (emp.id === id) {
-        return { ...emp, employmentStatus: emp.employmentStatus === 'Leaving' ? 'Active' : 'Leaving' };
+        const newStatus: 'Active' | 'Leaving' = emp.employmentStatus === 'Leaving' ? 'Active' : 'Leaving';
+        return { ...emp, employmentStatus: newStatus };
       }
       return emp;
     });

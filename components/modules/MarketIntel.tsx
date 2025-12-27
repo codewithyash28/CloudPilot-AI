@@ -11,14 +11,30 @@ const MarketIntel: React.FC = () => {
     if (!query) return;
     setLoading(true);
     setResults(null);
+
+    let latLng = undefined;
+    try {
+      const position: any = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject);
+      });
+      latLng = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude
+      };
+    } catch (e) {
+      console.warn("Location access denied, proceeding without proximity context.");
+    }
+
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      // Using gemini-2.5-flash for Maps + Search capability
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: query,
         config: {
-          tools: [{ googleSearch: {} }, { googleMaps: {} }]
+          tools: [{ googleSearch: {} }, { googleMaps: {} }],
+          toolConfig: latLng ? {
+            retrievalConfig: { latLng }
+          } : undefined
         }
       });
       setResults({
@@ -65,18 +81,27 @@ const MarketIntel: React.FC = () => {
           {results.sources.length > 0 && (
             <div className="pt-8 border-t dark:border-zinc-700">
               <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-6">Verified Grounding Sources</h4>
-              <div className="flex flex-wrap gap-3">
-                {results.sources.map((chunk: any, i: number) => (
-                  chunk.web ? (
-                    <a key={i} href={chunk.web.uri} target="_blank" rel="noopener noreferrer" className="text-xs bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 px-4 py-2 rounded-xl border border-amber-100 dark:border-amber-900/30 hover:bg-amber-100 transition-all font-bold shadow-sm">
-                      🔗 {chunk.web.title || 'Data Source'}
-                    </a>
-                  ) : chunk.maps ? (
-                    <a key={i} href={chunk.maps.uri} target="_blank" rel="noopener noreferrer" className="text-xs bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-xl border border-emerald-100 dark:border-emerald-900/30 hover:bg-emerald-100 transition-all font-bold shadow-sm">
-                      📍 {chunk.maps.title || 'Maps Reference'}
-                    </a>
-                  ) : null
-                ))}
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-3">
+                  {results.sources.map((chunk: any, i: number) => (
+                    chunk.web ? (
+                      <a key={i} href={chunk.web.uri} target="_blank" rel="noopener noreferrer" className="text-xs bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 px-4 py-2 rounded-xl border border-amber-100 dark:border-amber-900/30 hover:bg-amber-100 transition-all font-bold shadow-sm">
+                        🔗 {chunk.web.title || 'Data Source'}
+                      </a>
+                    ) : chunk.maps ? (
+                      <div key={i} className="flex flex-col gap-2">
+                        <a href={chunk.maps.uri} target="_blank" rel="noopener noreferrer" className="text-xs bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-xl border border-emerald-100 dark:border-emerald-900/30 hover:bg-emerald-100 transition-all font-bold shadow-sm inline-block">
+                          📍 {chunk.maps.title || 'Maps Reference'}
+                        </a>
+                        {chunk.maps.placeAnswerSources?.reviewSnippets?.map((snippet: string, idx: number) => (
+                          <p key={idx} className="text-[10px] text-gray-400 italic pl-4 border-l-2 border-emerald-100">
+                            "{snippet}"
+                          </p>
+                        ))}
+                      </div>
+                    ) : null
+                  ))}
+                </div>
               </div>
             </div>
           )}
