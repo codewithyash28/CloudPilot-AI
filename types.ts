@@ -69,6 +69,7 @@ export interface Employee {
   department: string;
   role: string;
   attendance: 'Present' | 'Absent' | 'On Leave';
+  employmentStatus?: 'Active' | 'Leaving';
 }
 
 export interface GeneratedSolution {
