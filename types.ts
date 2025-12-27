@@ -31,12 +31,20 @@ export interface SaleOrder {
   status: 'Quotation' | 'Sales Order' | 'Invoiced';
 }
 
+export interface StockEntry {
+  id: string;
+  date: string;
+  quantity: number;
+  note: string;
+}
+
 export interface Product {
   id: string;
   name: string;
   price: number;
-  stock: number;
+  stock: number; // Current total
   category: string;
+  stockHistory?: StockEntry[];
 }
 
 export interface Task {
