@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,13 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script>
-      // Initialize theme before anything else
-      if (localStorage.getItem('cloudpilot_theme') === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-
       tailwind.config = {
         darkMode: 'class',
         theme: {
@@ -30,23 +23,21 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            transition: background-color 0.3s ease;
-        }
-        .dark body {
-            background-color: #1a1a1a;
+            background-color: #18181b; /* zinc-900 */
+            color: #f4f4f5; /* zinc-100 */
         }
         ::-webkit-scrollbar {
           width: 8px;
         }
         ::-webkit-scrollbar-track {
-          background: transparent;
+          background: #18181b;
         }
         ::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
+          background: #3f3f46;
           border-radius: 4px;
         }
-        .dark ::webkit-scrollbar-thumb {
-          background: #475569;
+        ::-webkit-scrollbar-thumb:hover {
+          background: #52525b;
         }
     </style>
 <script type="importmap">
@@ -62,7 +53,7 @@
 }
 </script>
 </head>
-<body class="bg-[#f0f2f5] dark:bg-zinc-900 transition-colors duration-300">
+<body class="bg-zinc-900 text-zinc-100">
     <div id="root"></div>
 </body>
 </html>

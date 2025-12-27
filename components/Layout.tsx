@@ -17,9 +17,9 @@ const Layout: React.FC<LayoutProps> = ({ user, onLogout }) => {
   const activeModule = APP_MODULES.find(m => location.pathname.startsWith(m.path));
 
   return (
-    <div className="h-screen flex flex-col bg-[#f0f2f5] overflow-hidden">
+    <div className="h-screen flex flex-col bg-zinc-950 overflow-hidden text-zinc-100">
       {/* Top Navbar */}
-      <header className="h-12 flex items-center justify-between px-4 text-white shrink-0 shadow-md z-30" style={{ backgroundColor: ODOO_PURPLE }}>
+      <header className="h-12 flex items-center justify-between px-4 text-white shrink-0 shadow-xl z-30" style={{ backgroundColor: ODOO_PURPLE }}>
         <div className="flex items-center gap-4">
           <button 
             onClick={() => navigate('/')}
@@ -45,7 +45,7 @@ const Layout: React.FC<LayoutProps> = ({ user, onLogout }) => {
           </div>
           <button 
             onClick={onLogout}
-            className="text-xs font-semibold uppercase tracking-wider bg-red-500/80 hover:bg-red-600 px-3 py-1 rounded transition-colors shadow-sm"
+            className="text-xs font-semibold uppercase tracking-wider bg-rose-600 hover:bg-rose-700 px-4 py-1.5 rounded-lg transition-colors shadow-lg"
           >
             Logout
           </button>
@@ -53,24 +53,24 @@ const Layout: React.FC<LayoutProps> = ({ user, onLogout }) => {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar - only shown inside modules */}
+        {/* Sidebar */}
         {location.pathname !== '/' && (
-          <aside className={`w-64 bg-white border-r flex flex-col transition-all duration-300 ${isSidebarOpen ? '' : '-ml-64'}`}>
-            <div className="p-4 font-bold text-gray-500 text-xs uppercase tracking-widest border-b">
-              Main Navigation
+          <aside className={`w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col transition-all duration-300 shadow-2xl ${isSidebarOpen ? '' : '-ml-64'}`}>
+            <div className="p-4 font-black text-zinc-500 text-[10px] uppercase tracking-[0.2em] border-b border-zinc-800">
+              Navigation
             </div>
-            <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
+            <nav className="flex-1 p-3 space-y-1 overflow-y-auto scrollbar-hide">
               {APP_MODULES.map(module => (
                 <Link
                   key={module.id}
                   to={module.path}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all duration-200 ${
                     location.pathname.startsWith(module.path) 
-                    ? 'bg-indigo-50 text-indigo-700 font-semibold' 
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-indigo-600/10 text-indigo-400 font-bold border border-indigo-600/20 shadow-inner' 
+                    : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100'
                   }`}
                 >
-                  <span className="text-lg">{module.icon}</span>
+                  <span className="text-lg opacity-80">{module.icon}</span>
                   {module.name}
                 </Link>
               ))}
@@ -79,8 +79,8 @@ const Layout: React.FC<LayoutProps> = ({ user, onLogout }) => {
         )}
 
         {/* Content */}
-        <main className="flex-1 overflow-y-auto">
-          <div className={`${location.pathname === '/' ? '' : 'p-6 max-w-7xl mx-auto'}`}>
+        <main className="flex-1 overflow-y-auto bg-zinc-950">
+          <div className={`${location.pathname === '/' ? '' : 'p-8 max-w-7xl mx-auto'}`}>
             <Outlet />
           </div>
         </main>

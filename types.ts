@@ -53,6 +53,8 @@ export interface Task {
   project: string;
   assignee: string;
   status: 'Todo' | 'In Progress' | 'Done';
+  priority: 'Low' | 'Medium' | 'High';
+  dueDate?: string;
 }
 
 export interface Invoice {
